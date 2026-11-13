@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f5132">
+<title>그린스텝 · 매일 탄소중립</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="그린스텝">
+<meta name="application-name" content="그린스텝">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="매일 탄소중립 실천 미션 5개를 수행하고 포인트로 친환경 제품을 교환하는 PWA">
+<meta property="og:title" content="그린스텝 · 매일 탄소중립">
+<meta property="og:description" content="오늘의 실천 미션 5개, 포인트 리워드, 친환경 제품 교환">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{
+  --bg:#f3f7f4; --card:#ffffff; --ink:#15241c; --sub:#6b7f74;
+  --green:#1f8a5f; --green-d:#0f5132; --green-l:#e3f4ea;
+  --gold:#c8892a; --line:#e4ece7; --shadow:0 2px 12px rgba(16,56,38,.07);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif;
+  background:var(--bg); color:var(--ink);
+  padding-bottom:calc(74px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:520px;margin:0 auto;padding:0 16px}
+
+/* ---------- Header ---------- */
+header{
+  background:linear-gradient(160deg,#1f8a5f,#0f5132);
+  color:#fff;padding:calc(18px + env(safe-area-inset-top)) 0 54px;border-radius:0 0 26px 26px;
+}
+.hdr-top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:19px;letter-spacing:-.4px;display:flex;align-items:center;gap:7px}
+.logo .leaf{font-size:20px}
+.date{font-size:12.5px;opacity:.82}
+.point-box{
+  margin-top:20px;display:flex;align-items:flex-end;justify-content:space-between;
+}
+.point-label{font-size:12.5px;opacity:.85;margin-bottom:3px}
+.point-val{font-size:34px;font-weight:800;letter-spacing:-1px;line-height:1}
+.point-val small{font-size:15px;font-weight:600;margin-left:3px}
+.co2{text-align:right;font-size:12px;opacity:.9;line-height:1.5}
+.co2 b{display:block;font-size:17px;font-weight:700}
+
+/* ---------- Cards ---------- */
+.sheet{margin-top:-36px}
+.card{
+  background:var(--card);border-radius:18px;box-shadow:var(--shadow);
+  padding:16px;margin-bottom:14px;border:1px solid var(--line);
+}
+.card h2{margin:0 0 3px;font-size:16px;letter-spacing:-.3px}
+.card .desc{margin:0 0 14px;font-size:12.5px;color:var(--sub)}
+
+/* progress */
+.bar{height:9px;background:#eaf1ec;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#39b57f,#1f8a5f);border-radius:99px;transition:width .45s cubic-bezier(.3,1.2,.4,1)}
+.bar-row{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:7px}
+.bar-row b{color:var(--green-d)}
+
+/* mission list */
+ul.missions{list-style:none;margin:14px 0 0;padding:0}
+li.m{
+  display:flex;gap:12px;align-items:flex-start;padding:13px 12px;border-radius:14px;
+  background:#fafcfb;border:1px solid var(--line);margin-bottom:9px;cursor:pointer;
+  transition:background .18s,border-color .18s,transform .1s;
+}
+li.m:active{transform:scale(.985)}
+li.m.done{background:var(--green-l);border-color:#bde4cd}
+.chk{
+  flex:0 0 24px;width:24px;height:24px;border-radius:50%;border:2px solid #c6d6cc;
+  display:grid;place-items:center;margin-top:1px;transition:.18s;
+}
+li.m.done .chk{background:var(--green);border-color:var(--green)}
+.chk svg{width:13px;height:13px;stroke:#fff;stroke-width:3.2;fill:none;opacity:0;transition:.18s}
+li.m.done .chk svg{opacity:1}
+.m-body{flex:1;min-width:0}
+.m-title{font-size:14.5px;font-weight:600;letter-spacing:-.2px}
+li.m.done .m-title{color:#3d6b54}
+.m-meta{font-size:11.5px;color:var(--sub);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{background:#eef4f0;border-radius:6px;padding:1px 6px;color:#5c7a6a}
+.pt{color:var(--gold);font-weight:700}
+
+/* buttons */
+.btn{
+  display:block;width:100%;padding:14px;border:0;border-radius:14px;font-size:15px;font-weight:700;
+  background:var(--green);color:#fff;cursor:pointer;font-family:inherit;letter-spacing:-.2px;
+}
+.btn:disabled{background:#cdd9d2;color:#f3f7f4;cursor:default}
+.btn.ghost{background:#fff;color:var(--green-d);border:1.5px solid var(--line)}
+.btn.sm{padding:9px 14px;width:auto;font-size:13px;border-radius:10px}
+
+/* shop */
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.prod{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.prod .img{height:92px;display:grid;place-items:center;font-size:38px;background:var(--green-l)}
+.prod .in{padding:10px 11px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.prod .nm{font-size:13.5px;font-weight:700;letter-spacing:-.2px;line-height:1.3}
+.prod .ds{font-size:11px;color:var(--sub);flex:1;line-height:1.45}
+.prod .pr{font-size:13.5px;font-weight:800;color:var(--gold)}
+.prod button{width:100%;padding:9px;border:0;border-radius:10px;background:var(--green);color:#fff;font-weight:700;font-size:12.5px;font-family:inherit;cursor:pointer}
+.prod button:disabled{background:#e6ece9;color:#9fb0a7}
+
+/* stats */
+.stat-row{display:flex;gap:10px;margin-bottom:14px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:20px;color:var(--green-d);letter-spacing:-.5px}
+.stat span{font-size:11.5px;color:var(--sub)}
+.weekbar{display:flex;gap:6px;align-items:flex-end;height:96px;margin-top:6px}
+.weekbar div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.weekbar i{display:block;width:100%;background:#d7ebe0;border-radius:6px;min-height:4px}
+.weekbar i.on{background:var(--green)}
+.weekbar span{font-size:10.5px;color:var(--sub)}
+
+/* history */
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--line)}
+.hist li:last-child{border:0}
+.hist .neg{color:#c0392b;font-weight:700}
+.hist .pos{color:var(--green);font-weight:700}
+.hist small{color:var(--sub);font-size:11px;display:block}
+
+/* nav */
+nav{
+  position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:20;
+}
+nav button{
+  flex:1;background:none;border:0;padding:9px 0 10px;font-family:inherit;
+  font-size:11px;color:#9aaba2;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
+}
+nav button .ic{font-size:20px;line-height:1}
+nav button.on{color:var(--green-d);font-weight:700}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:92px;transform:translate(-50%,16px);
+  background:#15241c;color:#fff;padding:12px 20px;border-radius:99px;font-size:13.5px;font-weight:600;
+  opacity:0;pointer-events:none;transition:.28s;z-index:60;box-shadow:0 6px 20px rgba(0,0,0,.2);white-space:nowrap
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* 확인 모달 */
+#modal{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;
+  background:rgba(10,30,20,.45);backdrop-filter:blur(2px)}
+#modal.on{display:flex;animation:fade .2s}
+#modal .box{background:#fff;width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));
+  animation:up .26s cubic-bezier(.2,1,.3,1);text-align:center}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#modal .ic{font-size:46px;line-height:1}
+#modal h3{margin:10px 0 4px;font-size:17px;letter-spacing:-.3px}
+#modal p{margin:0 0 6px;font-size:13px;color:var(--sub);line-height:1.5}
+#modal .bal{display:flex;justify-content:space-between;font-size:13px;background:#f4f8f6;border-radius:12px;padding:11px 14px;margin:14px 0 16px}
+#modal .bal b{color:var(--green-d)}
+#modal .btns{display:flex;gap:9px}
+#modal .btns .btn{flex:1}
+/* --- 모바일 공통 (iOS + Android) --- */
+html{overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
+body{touch-action:manipulation;overscroll-behavior-y:contain;-webkit-user-select:none;user-select:none}
+nav{padding-bottom:max(env(safe-area-inset-bottom),8px)}
+#modal .box{padding-bottom:calc(26px + env(safe-area-inset-bottom))}
+@supports(-webkit-touch-callout:none){header{padding-top:calc(22px + env(safe-area-inset-top))}}
+li.m,.btn,nav button{position:relative;overflow:hidden}
+.ripple{position:absolute;border-radius:50%;background:rgba(31,138,95,.22);transform:scale(0);animation:rip .5s ease-out;pointer-events:none}
+@keyframes rip{to{transform:scale(2.6);opacity:0}}
+#installBar{display:none;margin:0 0 14px;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow)}
+#installBar.on{display:flex}
+#installBar p{margin:0;flex:1;font-size:12.5px;color:var(--sub);line-height:1.45}
+#installBar b{display:block;font-size:13.5px;color:var(--ink)}
+.page{display:none}
+.page.on{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.sec-title{font-size:15px;font-weight:800;margin:18px 0 10px;letter-spacing:-.3px}
+.empty{text-align:center;color:var(--sub);font-size:13px;padding:26px 0}
+.reward{
+  background:linear-gradient(135deg,#fff7e6,#ffeecb);border:1px solid #f0dcae;border-radius:16px;
+  padding:14px;text-align:center;font-size:13.5px;color:#8a6116;font-weight:700;margin-bottom:14px
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="hdr-top">
+      <div class="logo"><span class="leaf">🌿</span>그린스텝</div>
+      <div class="date" id="today"></div>
+    </div>
+    <div class="point-box">
+      <div>
+        <div class="point-label">보유 포인트</div>
+        <div class="point-val" id="pt">0<small>P</small></div>
+      </div>
+      <div class="co2">누적 감축량<b id="co2">0.0 kg</b>CO₂e</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 오늘의 미션 ============ -->
+<section class="page on" id="page-home">
+  <div class="wrap sheet">
+    <div id="installBar">
+      <span style="font-size:24px">📲</span>
+      <p><b id="instTitle">홈 화면에 앱 설치</b><span id="instDesc">주소창 없이 앱처럼 실행됩니다</span></p>
+      <button class="btn sm" id="installBtn">설치</button>
+    </div>
+    <div class="card">
+      <h2>오늘의 실천 미션 5</h2>
+      <p class="desc">매일 0시에 새로운 미션 5개가 배정됩니다.</p>
+      <div class="bar-row"><span>달성 현황</span><span><b id="cnt">0</b> / 5</span></div>
+      <div class="bar"><i id="prog"></i></div>
+      <ul class="missions" id="list"></ul>
+      <div id="bonusArea"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 상점 ============ -->
+<section class="page" id="page-shop">
+  <div class="wrap sheet">
+    <div class="card">
+      <h2>친환경 제품 교환</h2>
+      <p class="desc">모은 포인트로 실천을 이어갈 제품을 받아보세요.</p>
+    </div>
+    <div class="shop-grid" id="shop"></div>
+    <div class="sec-title">교환 내역</div>
+    <div class="card"><ul class="hist" id="orders"></ul></div>
+  </div>
+</section>
+
+<!-- ============ 기록 ============ -->
+<section class="page" id="page-stat">
+  <div class="wrap sheet">
+    <div class="stat-row">
+      <div class="stat"><b id="sStreak">0</b><span>연속 실천일</span></div>
+      <div class="stat"><b id="sTotal">0</b><span>총 실천 횟수</span></div>
+      <div class="stat"><b id="sDays">0</b><span>참여일수</span></div>
+    </div>
+    <div class="card">
+      <h2>최근 7일 실천</h2>
+      <p class="desc">하루 5개 완료 시 막대가 가득 찹니다.</p>
+      <div class="weekbar" id="week"></div>
+    </div>
+    <div class="card">
+      <h2>포인트 내역</h2>
+      <ul class="hist" id="ledger"></ul>
+    </div>
+    <button class="btn ghost" id="reset" style="margin-bottom:20px">데이터 초기화</button>
+  </div>
+</section>
+
+<nav>
+  <button class="on" data-p="home"><span class="ic">🌱</span>미션</button>
+  <button data-p="shop"><span class="ic">🛍️</span>상점</button>
+  <button data-p="stat"><span class="ic">📊</span>기록</button>
+</nav>
+
+<div id="modal"><div class="box">
+  <div class="ic" id="mIc">🛍️</div>
+  <h3 id="mTitle"></h3>
+  <p id="mDesc"></p>
+  <div class="bal">
+    <span>보유 <b id="mHave"></b></span>
+    <span>차감 <b id="mCost"></b></span>
+    <span>교환 후 <b id="mLeft"></b></span>
+  </div>
+  <div class="btns">
+    <button class="btn ghost" id="mNo">취소</button>
+    <button class="btn" id="mYes">교환하기</button>
+  </div>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+/* ===================== 데이터 ===================== */
+const POOL = [
+  {t:"텀블러 사용하기",           c:"소비", p:20, g:0.05, d:"일회용컵 1개 대신"},
+  {t:"장바구니 챙겨 나가기",       c:"소비", p:15, g:0.03, d:"비닐봉투 안 쓰기"},
+  {t:"대중교통·도보로 이동하기",    c:"이동", p:30, g:1.20, d:"승용차 5km 대체"},
+  {t:"자전거로 한 구간 이동하기",   c:"이동", p:25, g:0.60, d:"무탄소 이동"},
+  {t:"엘리베이터 대신 계단 쓰기",   c:"에너지", p:15, g:0.02, d:"3층 이하"},
+  {t:"안 쓰는 플러그 뽑기",        c:"에너지", p:15, g:0.10, d:"대기전력 차단"},
+  {t:"냉난방 1도 조절하기",        c:"에너지", p:20, g:0.35, d:"적정온도 유지"},
+  {t:"잔반 없이 다 먹기",          c:"식생활", p:20, g:0.25, d:"음식물 쓰레기 줄이기"},
+  {t:"하루 한 끼 채식하기",        c:"식생활", p:30, g:1.60, d:"육류 한 끼 대체"},
+  {t:"포장 없이 매장에서 먹기",     c:"식생활", p:20, g:0.08, d:"일회용 용기 감축"},
+  {t:"분리배출 바르게 하기",       c:"자원", p:15, g:0.12, d:"라벨 제거·헹구기"},
+  {t:"종이 대신 전자문서 쓰기",     c:"자원", p:15, g:0.04, d:"A4 10장 절약"},
+  {t:"양치할 때 물 잠그기",        c:"자원", p:10, g:0.02, d:"물 6L 절약"},
+  {t:"샤워 5분 안에 끝내기",       c:"자원", p:20, g:0.30, d:"온수 사용 절감"},
+  {t:"중고·리필 제품 이용하기",     c:"소비", p:25, g:0.50, d:"새 제품 생산 감축"},
+  {t:"안 쓰는 물건 나눔하기",       c:"소비", p:25, g:0.40, d:"수명 연장"},
+  {t:"세탁물 모아서 한 번에 돌리기", c:"에너지", p:20, g:0.30, d:"세탁 횟수 감축"},
+  {t:"실내 식물 돌보기",           c:"기타", p:10, g:0.01, d:"탄소흡수·공기정화"},
+  {t:"걸어서 10분 거리 장보기",     c:"이동", p:20, g:0.45, d:"가까운 상점 이용"},
+  {t:"스팸메일·불필요 파일 정리",    c:"기타", p:10, g:0.03, d:"데이터센터 전력 절감"}
+];
+
+const SHOP = [
+  {id:"p1", e:"🥤", n:"스테인리스 텀블러", p:300, d:"400ml 보온·보냉, 일회용컵 대체"},
+  {id:"p2", e:"🪥", n:"대나무 칫솔 4입",   p:150, d:"생분해 손잡이, 플라스틱 프리"},
+  {id:"p3", e:"🧼", n:"고체 샴푸바",       p:200, d:"플라스틱 용기 없는 세정제"},
+  {id:"p4", e:"👜", n:"오가닉 에코백",     p:250, d:"유기농 면 100%, 비닐 대체"},
+  {id:"p5", e:"🧺", n:"실리콘 밀폐백 3종", p:350, d:"세척·재사용 가능한 식품백"},
+  {id:"p6", e:"🌱", n:"반려식물 키트",     p:400, d:"공기정화 식물 + 친환경 화분"},
+  {id:"p7", e:"🍚", n:"쌀겨 수세미 2입",   p:120, d:"미세플라스틱 없는 설거지"},
+  {id:"p8", e:"🔋", n:"충전식 건전지 세트", p:500, d:"AA 4본 + 충전기, 폐건전지 감축"}
+];
+
+const BONUS = 50; // 5개 모두 완료 보너스
+const KEY = "greenstep_v1";
+let LS; try{ localStorage.setItem("_t","1"); localStorage.removeItem("_t"); LS=localStorage; }
+catch(e){ const m={}; LS={getItem:k=>m[k]??null,setItem:(k,v)=>m[k]=v,removeItem:k=>delete m[k]}; }
+
+/* ===================== 상태 ===================== */
+const todayKey = () => {
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+};
+let S = load();
+
+function load(){
+  try{
+    const s = JSON.parse(LS.getItem(KEY));
+    if(s && s.v===1) return s;
+  }catch(e){}
+  return {v:1, point:0, co2:0, totalDone:0, days:{}, ledger:[], orders:[]};
+}
+function save(){ LS.setItem(KEY, JSON.stringify(S)); }
+
+/* 날짜 시드 기반 고정 랜덤 → 같은 날엔 같은 미션 5개 */
+function seedRand(seed){
+  let x = seed;
+  return () => { x = (x*1664525 + 1013904223) % 4294967296; return x/4294967296; };
+}
+function pickToday(){
+  const k = todayKey();
+  if(S.days[k]) return S.days[k];
+  let seed = 0; for(const ch of k) seed = (seed*31 + ch.charCodeAt(0)) % 100000;
+  const r = seedRand(seed+7);
+  const idx = [...POOL.keys()];
+  for(let i=idx.length-1;i>0;i--){ const j = Math.floor(r()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  S.days[k] = {ids:idx.slice(0,5), done:[false,false,false,false,false], bonus:false};
+  save();
+  return S.days[k];
+}
+
+/* ===================== 렌더 ===================== */
+const $ = s => document.querySelector(s);
+
+function fmtDate(){
+  const d=new Date(), w=["일","월","화","수","목","금","토"][d.getDay()];
+  return `${d.getMonth()+1}월 ${d.getDate()}일 (${w})`;
+}
+
+function renderHeader(){
+  $("#pt").innerHTML = S.point.toLocaleString()+"<small>P</small>";
+  $("#co2").textContent = S.co2.toFixed(1)+" kg";
+}
+
+function renderMissions(){
+  const day = pickToday();
+  const ul = $("#list"); ul.innerHTML="";
+  day.ids.forEach((id,i)=>{
+    const m = POOL[id];
+    const li = document.createElement("li");
+    li.className = "m"+(day.done[i]?" done":"");
+    li.innerHTML = `
+      <span class="chk"><svg viewBox="0 0 24 24"><polyline points="4,12 10,18 20,6"/></svg></span>
+      <span class="m-body">
+        <span class="m-title">${m.t}</span>
+        <span class="m-meta">
+          <span class="tag">${m.c}</span>
+          <span>${m.d}</span>
+          <span class="pt">+${m.p}P</span>
+        </span>
+      </span>`;
+    li.onclick = ()=>toggle(i);
+    ul.appendChild(li);
+  });
+  const n = day.done.filter(Boolean).length;
+  $("#cnt").textContent = n;
+  $("#prog").style.width = (n/5*100)+"%";
+
+  const ba = $("#bonusArea");
+  if(n===5){
+    ba.innerHTML = `<div class="reward" style="margin:14px 0 0">🎉 오늘의 미션 5개 완료! 보너스 ${BONUS}P 지급</div>`;
+    if(!day.bonus){
+      day.bonus = true;
+      S.point += BONUS;
+      S.ledger.unshift({t:"일일 완주 보너스", p:BONUS, d:todayKey()});
+      save(); renderHeader(); renderStat(); renderShop();
+      toast(`축하합니다! 보너스 +${BONUS}P 🎉`);
+      if(navigator.vibrate) navigator.vibrate([25,60,25,60,45]);
+    }
+  } else {
+    ba.innerHTML = `<p class="desc" style="margin:14px 0 0;text-align:center">${5-n}개 더 완료하면 보너스 ${BONUS}P!</p>`;
+  }
+}
+
+function toggle(i){
+  const day = pickToday(), m = POOL[day.ids[i]];
+  if(day.done[i]){
+    day.done[i]=false;
+    S.point = Math.max(0, S.point - m.p);
+    S.co2 = Math.max(0, S.co2 - m.g);
+    S.totalDone = Math.max(0, S.totalDone-1);
+    S.ledger.unshift({t:m.t+" (취소)", p:-m.p, d:todayKey()});
+    if(day.bonus){ day.bonus=false; S.point=Math.max(0,S.point-BONUS); S.ledger.unshift({t:"완주 보너스 취소", p:-BONUS, d:todayKey()}); }
+  }else{
+    day.done[i]=true;
+    S.point += m.p; S.co2 += m.g; S.totalDone++;
+    S.ledger.unshift({t:m.t, p:m.p, d:todayKey()});
+    toast(`+${m.p}P · CO₂ ${m.g}kg 감축 🌿`);
+    if(navigator.vibrate) navigator.vibrate([18,40,18]);
+  }
+  if(S.ledger.length>60) S.ledger.length=60;
+  save(); renderHeader(); renderMissions(); renderStat(); renderShop();
+}
+
+function renderShop(){
+  const g = $("#shop"); g.innerHTML="";
+  SHOP.forEach(p=>{
+    const ok = S.point >= p.p;
+    const el = document.createElement("div");
+    el.className="prod";
+    el.innerHTML = `<div class="img">${p.e}</div>
+      <div class="in">
+        <div class="nm">${p.n}</div>
+        <div class="ds">${p.d}</div>
+        <div class="pr">${p.p.toLocaleString()}P</div>
+        <button ${ok?"":"disabled"}>${ok?"교환하기":"포인트 부족"}</button>
+      </div>`;
+    const b=el.querySelector("button");
+    b.dataset.id=p.id;
+    b.addEventListener("click", ev=>{ ev.preventDefault(); ev.stopPropagation(); buy(p); });
+    g.appendChild(el);
+  });
+  const o = $("#orders");
+  o.innerHTML = S.orders.length ? "" : `<div class="empty">아직 교환한 제품이 없습니다.<br>미션을 완료해 포인트를 모아보세요 🌿</div>`;
+  S.orders.forEach(x=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<span style="display:flex;gap:9px;align-items:center">
+        <span style="font-size:22px">${x.e||"🛍️"}</span>
+        <span>${x.n}<small>${x.d}${x.t?" "+x.t:""} · 주문번호 ${x.code||"-"}</small></span>
+      </span>
+      <span style="text-align:right"><span class="neg">-${x.p.toLocaleString()}P</span><small style="color:var(--green);font-weight:600">교환완료</small></span>`;
+    o.appendChild(li);
+  });
+}
+
+/* 확인 모달 (confirm()이 앱 모드에서 차단되는 문제 대응) */
+let pending = null;
+function openModal(p){
+  pending = p;
+  $("#mIc").textContent   = p.e;
+  $("#mTitle").textContent= p.n;
+  $("#mDesc").textContent = p.d;
+  $("#mHave").textContent = S.point.toLocaleString()+"P";
+  $("#mCost").textContent = "-"+p.p.toLocaleString()+"P";
+  $("#mLeft").textContent = (S.point-p.p).toLocaleString()+"P";
+  $("#modal").classList.add("on");
+}
+function closeModal(){ $("#modal").classList.remove("on"); pending=null; }
+
+function buy(p){
+  if(!p) return;
+  if(S.point < p.p){ toast(`${(p.p-S.point).toLocaleString()}P가 더 필요합니다`); return; }
+  openModal(p);
+}
+function confirmBuy(){
+  const p = pending;
+  if(!p) return closeModal();
+  if(S.point < p.p){ closeModal(); toast("포인트가 부족합니다"); return; }
+  S.point -= p.p;
+  S.orders.unshift({n:p.n, e:p.e, p:p.p, d:todayKey(), t:new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}), code:"GS"+Date.now().toString().slice(-6)});
+  S.ledger.unshift({t:"상품 교환 · "+p.n, p:-p.p, d:todayKey()});
+  if(S.ledger.length>60) S.ledger.length=60;
+  save();
+  closeModal();
+  renderHeader(); renderShop(); renderStat();
+  if(navigator.vibrate) navigator.vibrate([20,50,20]);
+  toast(`${p.n} 교환 완료! 🛍️`);
+  // 교환 내역으로 시선 이동
+  setTimeout(()=>{ const o=$("#orders"); if(o) o.scrollIntoView({behavior:"smooth",block:"center"}); }, 450);
+}
+
+function renderStat(){
+  const keys = Object.keys(S.days).sort();
+  // streak
+  let streak=0; const d=new Date();
+  for(;;){
+    const k = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    const day = S.days[k];
+    const n = day ? day.done.filter(Boolean).length : 0;
+    if(n>0){ streak++; d.setDate(d.getDate()-1); }
+    else if(k===todayKey()){ d.setDate(d.getDate()-1); }
+    else break;
+    if(streak>400) break;
+  }
+  $("#sStreak").textContent = streak;
+  $("#sTotal").textContent = S.totalDone;
+  $("#sDays").textContent = keys.filter(k=>S.days[k].done.some(Boolean)).length;
+
+  const w = $("#week"); w.innerHTML="";
+  for(let i=6;i>=0;i--){
+    const dt=new Date(); dt.setDate(dt.getDate()-i);
+    const k=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+    const n = S.days[k] ? S.days[k].done.filter(Boolean).length : 0;
+    const div=document.createElement("div");
+    div.innerHTML=`<i class="${n?'on':''}" style="height:${Math.max(4, n/5*76)}px"></i>
+      <span>${["일","월","화","수","목","금","토"][dt.getDay()]}</span>`;
+    w.appendChild(div);
+  }
+
+  const l=$("#ledger");
+  l.innerHTML = S.ledger.length ? "" : `<div class="empty">포인트 내역이 없습니다.</div>`;
+  S.ledger.slice(0,20).forEach(x=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<span>${x.t}<small>${x.d}</small></span>
+      <span class="${x.p<0?'neg':'pos'}">${x.p>0?'+':''}${x.p}P</span>`;
+    l.appendChild(li);
+  });
+}
+
+/* 모달 버튼 바인딩 */
+$("#mYes").addEventListener("click", e=>{ e.preventDefault(); confirmBuy(); });
+$("#mNo").addEventListener("click", e=>{ e.preventDefault(); closeModal(); });
+$("#modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
+/* 상점 버튼 이벤트 위임(백업 경로) */
+$("#shop").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-id]"); if(!b||b.disabled) return;
+  const p=SHOP.find(x=>x.id===b.dataset.id); if(p && !$("#modal").classList.contains("on")) buy(p);
+});
+
+let tm;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(tm); tm=setTimeout(()=>t.classList.remove("show"),1700);
+}
+
+/* nav */
+document.querySelectorAll("nav button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    $("#page-"+b.dataset.p).classList.add("on");
+    window.scrollTo({top:0});
+  };
+});
+$("#reset").onclick=()=>{
+  const b=$("#reset");
+  if(b.dataset.armed!=="1"){
+    b.dataset.armed="1"; b.textContent="정말 초기화할까요? 한 번 더 누르세요";
+    setTimeout(()=>{ b.dataset.armed="0"; b.textContent="데이터 초기화"; },4000);
+    return;
+  }
+  b.dataset.armed="0"; b.textContent="데이터 초기화";
+  LS.removeItem(KEY); S=load(); renderAll(); toast("초기화되었습니다");
+};
+
+/* ===== PWA 설치 (Android: 프롬프트 / iOS: 안내) ===== */
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const standalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("#installBar").classList.add("on");});
+if(isIOS && !standalone){
+  $("#instDesc").textContent="공유 버튼 → '홈 화면에 추가'";
+  $("#installBtn").textContent="방법";
+  $("#installBar").classList.add("on");
+}
+$("#installBtn").onclick=async()=>{
+  if(isIOS){ toast("Safari 공유 ⬆️ → 홈 화면에 추가"); return; }
+  if(!deferredPrompt){ toast("브라우저 메뉴 ⋮ → 앱 설치를 눌러주세요"); return; }
+  deferredPrompt.prompt(); const {outcome}=await deferredPrompt.userChoice;
+  deferredPrompt=null; $("#installBar").classList.remove("on");
+  if(outcome==="accepted") toast("홈 화면에 설치되었습니다 🌿");
+};
+window.addEventListener("appinstalled",()=>{$("#installBar").classList.remove("on");toast("설치 완료! 🎉");});
+
+/* ===== 오프라인 캐시 ===== */
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+
+/* ===== 리플 + 햅틱 ===== */
+document.addEventListener("pointerdown",ev=>{
+  const el=ev.target.closest("li.m,.btn,nav button"); if(!el||el.disabled) return;
+  const r=el.getBoundingClientRect(), s=Math.max(r.width,r.height);
+  const d=document.createElement("span"); d.className="ripple";
+  d.style.cssText=`width:${s}px;height:${s}px;left:${ev.clientX-r.left-s/2}px;top:${ev.clientY-r.top-s/2}px`;
+  el.appendChild(d); setTimeout(()=>d.remove(),500);
+  if(navigator.vibrate) navigator.vibrate(12);
+},{passive:true});
+
+function renderAll(){ $("#today").textContent=fmtDate(); renderHeader(); renderMissions(); renderShop(); renderStat(); }
+history.replaceState({p:"home"},"");
+document.querySelectorAll("nav button").forEach(b=>{const o=b.onclick;b.onclick=e=>{o(e);history.pushState({p:b.dataset.p},"");};});
+window.addEventListener("popstate",e=>{
+  if($("#modal").classList.contains("on")){ closeModal(); return; }
+  const p=(e.state&&e.state.p)||"home";
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.p===p));
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));
+  $("#page-"+p).classList.add("on");
+});
+renderAll();
+// 자정 넘어가면 새 미션으로 갱신
+setInterval(()=>{ if($("#today").textContent!==fmtDate()) renderAll(); }, 30000);
+</script>
+</body>
+</html>
